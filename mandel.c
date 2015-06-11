@@ -20,6 +20,7 @@ main(void)
     __m128i zero = _mm_setzero_si128();
     __m128i pixel_pack =
         _mm_set_epi8(15, 15, 15, 15, 12, 12, 12, 8, 8, 8, 4, 4, 4, 0, 0, 0);
+    __m128 depth_max = _mm_set_ps1(255);
 
     printf("P6\n%d %d\n255\n", width, height);
     for (int y = 0; y < height; y++) {
@@ -53,8 +54,9 @@ main(void)
                 if (0xFFFF == _mm_movemask_epi8(_mm_cmpeq_epi8(maski, zero)))
                     break;
             }
-            uint8_t ks[128];
+            mk = _mm_mul_ps(_mm_sqrt_ps(_mm_div_ps(mk, depth_max)), depth_max);
             __m128i pixels = _mm_shuffle_epi8(_mm_cvtps_epi32(mk), pixel_pack);
+            uint8_t ks[128];
             _mm_store_si128((void *)ks, pixels);
             fwrite(ks, 3, 4, stdout);
         }
