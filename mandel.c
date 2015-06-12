@@ -64,9 +64,7 @@ main(void)
             mk = _mm_sqrt_ps(mk);
             mk = _mm_mul_ps(mk, depth_scale);
             __m128i pixels = _mm_shuffle_epi8(_mm_cvtps_epi32(mk), pixel_pack);
-            uint8_t ks[128];
-            _mm_store_si128((void *)ks, pixels);
-            memcpy(image + y * width * 3 + x * 3, ks, 12);
+            memcpy(image + y * width * 3 + x * 3, &pixels, 12);
         }
     }
 
