@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <xmmintrin.h>
 #include <tmmintrin.h>
