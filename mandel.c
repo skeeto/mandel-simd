@@ -28,6 +28,7 @@ main(void)
     char *image = malloc(width * height * 3);
 
     printf("P6\n%d %d\n%d\n", width, height, depth - 1);
+    #pragma omp parallel for schedule(dynamic, 1)
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x += 4) {
             __m128 mx = _mm_set_ps(x + 3, x + 2, x + 1, x + 0);
