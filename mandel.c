@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <xmmintrin.h>
 #include <tmmintrin.h>
 
@@ -23,6 +24,8 @@ main(void)
         _mm_set_epi8(15, 15, 15, 15, 12, 12, 12, 8, 8, 8, 4, 4, 4, 0, 0, 0);
     __m128 iter_scale = _mm_set_ps1(1.0f / iterations);
     __m128 depth_scale = _mm_set_ps1(depth - 1);
+
+    char *image = malloc(width * height * 3);
 
     printf("P6\n%d %d\n%d\n", width, height, depth - 1);
     for (int y = 0; y < height; y++) {
@@ -62,9 +65,11 @@ main(void)
             __m128i pixels = _mm_shuffle_epi8(_mm_cvtps_epi32(mk), pixel_pack);
             uint8_t ks[128];
             _mm_store_si128((void *)ks, pixels);
-            fwrite(ks, 3, 4, stdout);
+            memcpy(image + y * width * 3 + x * 3, ks, 12);
         }
     }
 
+    fwrite(image, width * height, 3, stdout);
+    free(image);
     return 0;
 }
