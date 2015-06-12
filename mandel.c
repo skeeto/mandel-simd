@@ -25,8 +25,6 @@ main(void)
     __m128 depth_scale = _mm_set_ps1(depth - 1);
 
     char *image = malloc(width * height * 3);
-
-    printf("P6\n%d %d\n%d\n", width, height, depth - 1);
     #pragma omp parallel for schedule(dynamic, 1)
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x += 4) {
@@ -68,6 +66,7 @@ main(void)
         }
     }
 
+    printf("P6\n%d %d\n%d\n", width, height, depth - 1);
     fwrite(image, width * height, 3, stdout);
     free(image);
     return 0;
