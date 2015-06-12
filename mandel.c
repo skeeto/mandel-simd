@@ -14,13 +14,13 @@ main(void)
     int iterations = 256;
 
     __m128 xmin = _mm_set_ps1(xlim[0]);
+    __m128 ymin = _mm_set_ps1(ylim[0]);
     __m128 xscale = _mm_set_ps1((xlim[1] - xlim[0]) / width);
-    float yscale = (ylim[1] - ylim[0]) / height;
-    __m128 thresh = _mm_set_ps1(4);
+    __m128 yscale = _mm_set_ps1((ylim[1] - ylim[0]) / height);
+    __m128 threshold = _mm_set_ps1(4);
     __m128 one = _mm_set_ps1(1);
     __m128i zero = _mm_setzero_si128();
-    __m128i pixel_pack =
-        _mm_set_epi8(15, 15, 15, 15, 12, 12, 12, 8, 8, 8, 4, 4, 4, 0, 0, 0);
+    __m128i pixel_pack = _mm_set_epi64x(0x0c0c0c08, 0x0808040404000000);
     __m128 iter_scale = _mm_set_ps1(1.0f / iterations);
     __m128 depth_scale = _mm_set_ps1(depth - 1);
 
@@ -31,8 +31,9 @@ main(void)
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x += 4) {
             __m128 mx = _mm_set_ps(x + 3, x + 2, x + 1, x + 0);
+            __m128 my = _mm_set_ps1(y);
             __m128 cr = _mm_add_ps(_mm_mul_ps(mx, xscale), xmin);
-            __m128 ci = _mm_set_ps1(y * yscale + ylim[0]);
+            __m128 ci = _mm_add_ps(_mm_mul_ps(my, yscale), ymin);
             __m128 zr = cr;
             __m128 zi = ci;
             int k = 1;
@@ -51,7 +52,7 @@ main(void)
                 zr2 = _mm_mul_ps(zr, zr);
                 zi2 = _mm_mul_ps(zi, zi);
                 __m128 mag2 = _mm_add_ps(zr2, zi2);
-                __m128 mask = _mm_cmplt_ps(mag2, thresh);
+                __m128 mask = _mm_cmplt_ps(mag2, threshold);
                 mk = _mm_add_ps(_mm_and_ps(mask, one), mk);
 
                 /* Early bailout? */
