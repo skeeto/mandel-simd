@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <getopt.h>
 #include <xmmintrin.h> // sse2
 #include <immintrin.h> // avx
 
@@ -171,8 +172,9 @@ mandel_basic(unsigned char *image, const struct spec *s)
 }
 
 int
-main(void)
+main(int argc, char *argv[])
 {
+    /* Config */
     struct spec spec = {
         .width = 1440,
         .height = 1080,
@@ -181,10 +183,48 @@ main(void)
         .ylim = {-1.5, 1.5},
         .iterations = 256
     };
+    int use_avx = 1;
+    int use_sse2 = 1;
+
+    /* Parse Options */
+    int option;
+    while ((option = getopt(argc, argv, "w:h:d:k:x:y:AS")) != -1) {
+        switch (option) {
+            case 'w':
+                spec.width = atoi(optarg);
+                break;
+            case 'h':
+                spec.height = atoi(optarg);
+                break;
+            case 'd':
+                spec.depth = atoi(optarg);
+                break;
+            case 'k':
+                spec.iterations = atoi(optarg);
+                break;
+            case 'x':
+                sscanf(optarg, "%f:%f", &spec.xlim[0], &spec.xlim[1]);
+                break;
+            case 'y':
+                sscanf(optarg, "%f:%f", &spec.ylim[0], &spec.ylim[1]);
+                break;
+            case 'A':
+                use_avx = 0;
+                break;
+            case 'S':
+                use_sse2 = 0;
+                break;
+            default:
+                return 1;
+                break;
+        }
+    }
+
+    /* Render */
     unsigned char *image = malloc(spec.width * spec.height * 3);
-    if (__builtin_cpu_supports("avx"))
+    if (use_avx && __builtin_cpu_supports("avx"))
         mandel_avx(image, &spec);
-    else if (__builtin_cpu_supports("sse2"))
+    else if (use_sse2 && __builtin_cpu_supports("sse2"))
         mandel_sse2(image, &spec);
     else
         mandel_basic(image, &spec);
