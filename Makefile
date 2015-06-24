@@ -1,3 +1,3 @@
-CFLAGS = -std=c99 -mssse3 -Wall -Wextra -Ofast -fopenmp
+CFLAGS = -std=c99 -msse2 -mavx -Wall -Wextra -Ofast -fopenmp
 
 mandel : mandel.c
