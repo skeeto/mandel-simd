@@ -15,6 +15,7 @@ mandel_basic(unsigned char *image, const struct spec *s)
     float ydiff = s->ylim[1] - s->ylim[0];
     float iter_scale = 1.0f / s->iterations;
     float depth_scale = s->depth - 1;
+    #pragma omp parallel for schedule(dynamic, 1)
     for (int y = 0; y < s->height; y++) {
         for (int x = 0; x < s->width; x++) {
             float cr = x * xdiff / s->width  + s->xlim[0];
