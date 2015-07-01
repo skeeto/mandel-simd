@@ -5,8 +5,9 @@
 #include "mandel.h"
 
 void mandel_basic(unsigned char *image, const struct spec *s);
-void mandel_sse2(unsigned char *image, const struct spec *s);
 void mandel_avx(unsigned char *image, const struct spec *s);
+void mandel_sse2(unsigned char *image, const struct spec *s);
+void mandel_neon(unsigned char *image, const struct spec *s);
 
 void
 mandel_basic(unsigned char *image, const struct spec *s)
@@ -56,12 +57,21 @@ main(int argc, char *argv[])
         .ylim = {-1.5, 1.5},
         .iterations = 256
     };
+
+    #ifdef __x86_64__
     int use_avx = 1;
     int use_sse2 = 1;
+    const char *optstring = "w:h:d:k:x:y:AS";
+    #endif // __x86_64__
+
+    #ifdef __arm__
+    int use_neon = 1;
+    const char *optstring = "w:h:d:k:x:y:N";
+    #endif // __arm__
 
     /* Parse Options */
     int option;
-    while ((option = getopt(argc, argv, "w:h:d:k:x:y:AS")) != -1) {
+    while ((option = getopt(argc, argv, optstring)) != -1) {
         switch (option) {
             case 'w':
                 spec.width = atoi(optarg);
@@ -81,12 +91,22 @@ main(int argc, char *argv[])
             case 'y':
                 sscanf(optarg, "%f:%f", &spec.ylim[0], &spec.ylim[1]);
                 break;
+
+            #ifdef __x86_64__
             case 'A':
                 use_avx = 0;
                 break;
             case 'S':
                 use_sse2 = 0;
                 break;
+            #endif // __x86_64__
+
+            #ifdef __arm__
+            case 'N':
+                use_neon = 0;
+                break;
+            #endif // __arm__
+
             default:
                 exit(EXIT_FAILURE);
                 break;
@@ -95,14 +115,26 @@ main(int argc, char *argv[])
 
     /* Render */
     unsigned char *image = malloc(spec.width * spec.height * 3);
+
+    #ifdef __x86_64__
     if (use_avx && __builtin_cpu_supports("avx"))
         mandel_avx(image, &spec);
     else if (use_sse2 && __builtin_cpu_supports("sse2"))
         mandel_sse2(image, &spec);
+    #endif // __x86_64__
+
+    #ifdef __arm__
+    if (use_neon)
+        mandel_neon(image, &spec);
+    #endif // __arm__
+
     else
         mandel_basic(image, &spec);
+
+    /* Write result */
     fprintf(stdout, "P6\n%d %d\n%d\n", spec.width, spec.height, spec.depth - 1);
     fwrite(image, spec.width * spec.height, 3, stdout);
     free(image);
+
     return 0;
 }

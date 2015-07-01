@@ -1,3 +1,4 @@
-mandel
+mandel.x86
+mandel.arm
 *.o
 *.ppm
