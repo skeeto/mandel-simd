@@ -45,6 +45,18 @@ mandel_basic(unsigned char *image, const struct spec *s)
     }
 }
 
+#ifdef __x86_64__
+#include <cpuid.h>
+
+static inline int
+is_avx_supported(void)
+{
+    unsigned int eax = 0, ebx = 0, ecx = 0, edx = 0;
+    __get_cpuid(1, &eax, &ebx, &ecx, &edx);
+    return ecx & bit_AVX ? 1 : 0;
+}
+#endif // __x86_64__
+
 int
 main(int argc, char *argv[])
 {
@@ -117,9 +129,9 @@ main(int argc, char *argv[])
     unsigned char *image = malloc(spec.width * spec.height * 3);
 
     #ifdef __x86_64__
-    if (use_avx && __builtin_cpu_supports("avx"))
+    if (use_avx && is_avx_supported())
         mandel_avx(image, &spec);
-    else if (use_sse2 && __builtin_cpu_supports("sse2"))
+    else if (use_sse2)
         mandel_sse2(image, &spec);
     #endif // __x86_64__
 
