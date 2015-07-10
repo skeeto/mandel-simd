@@ -10,7 +10,6 @@ mandel_sse2(unsigned char *image, const struct spec *s)
     __m128 yscale = _mm_set_ps1((s->ylim[1] - s->ylim[0]) / s->height);
     __m128 threshold = _mm_set_ps1(4);
     __m128 one = _mm_set_ps1(1);
-    __m128i zero = _mm_setzero_si128();
     __m128 iter_scale = _mm_set_ps1(1.0f / s->iterations);
     __m128 depth_scale = _mm_set_ps1(s->depth - 1);
 
@@ -43,8 +42,7 @@ mandel_sse2(unsigned char *image, const struct spec *s)
                 mk = _mm_add_ps(_mm_and_ps(mask, one), mk);
 
                 /* Early bailout? */
-                __m128i maski = _mm_castps_si128(mask);
-                if (0xFFFF == _mm_movemask_epi8(_mm_cmpeq_epi8(maski, zero)))
+                if (_mm_movemask_ps(mask) == 0)
                     break;
             }
             mk = _mm_mul_ps(mk, iter_scale);
