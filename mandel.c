@@ -24,18 +24,18 @@ mandel_basic(unsigned char *image, const struct spec *s)
             float zr = cr;
             float zi = ci;
             int k = 0;
-            float mk = 0.0;
+            float mk = 0.0f;
             while (++k < s->iterations) {
                 float zr1 = zr * zr - zi * zi + cr;
                 float zi1 = zr * zi + zr * zi + ci;
                 zr = zr1;
                 zi = zi1;
-                mk += 1.0;
+                mk += 1.0f;
                 if (zr * zr + zi * zi >= 4.0f)
                     break;
             }
             mk *= iter_scale;
-            mk = sqrt(mk);
+            mk = sqrtf(mk);
             mk *= depth_scale;
             int pixel = mk;
             image[y * s->width * 3 + x * 3 + 0] = pixel;
