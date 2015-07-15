@@ -5,6 +5,7 @@
 #include "mandel.h"
 
 void mandel_basic(unsigned char *image, const struct spec *s);
+void mandel_altivec(unsigned char *image, const struct spec *s);
 void mandel_avx(unsigned char *image, const struct spec *s);
 void mandel_sse2(unsigned char *image, const struct spec *s);
 void mandel_neon(unsigned char *image, const struct spec *s);
@@ -81,6 +82,11 @@ main(int argc, char *argv[])
     const char *optstring = "w:h:d:k:x:y:N";
     #endif // __arm__
 
+    #ifdef __ppc__
+    int use_altivec = 1;
+    const char *optstring = "w:h:d:k:x:y:A";
+    #endif // __ppc__
+
     /* Parse Options */
     int option;
     while ((option = getopt(argc, argv, optstring)) != -1) {
@@ -119,6 +125,12 @@ main(int argc, char *argv[])
                 break;
             #endif // __arm__
 
+            #ifdef __ppc__
+            case 'A':
+                use_altivec = 0;
+                break;
+            #endif // __ppc__
+
             default:
                 exit(EXIT_FAILURE);
                 break;
@@ -139,6 +151,11 @@ main(int argc, char *argv[])
     if (use_neon)
         mandel_neon(image, &spec);
     #endif // __arm__
+
+    #ifdef __ppc__
+    if (use_altivec)
+        mandel_altivec(image, &spec);
+    #endif // __ppc__
 
     else
         mandel_basic(image, &spec);
