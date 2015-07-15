@@ -42,19 +42,18 @@ mandel_altivec(unsigned char *image, const struct spec *s)
             vector float mk = (vector float) { 1, 1, 1, 1 };
             while (++k < s->iterations) {
                 /* Compute z1 from z0 */
-                vector float zr2 = vec_madd(zr, zr, zero);
+                vector float zr2cr = vec_madd(zr, zr, cr);
                 vector float zi2 = vec_madd(zi, zi, zero);
                 vector float zrzi = vec_madd(zr, zi, zero);
 
                 /* zr1 = zr0 * zr0 - zi0 * zi0 + cr */
                 /* zi1 = zr0 * zi0 + zr0 * zi0 + ci */
-                zr = vec_add(vec_sub(zr2, zi2), cr);
+                zr = vec_sub(zr2cr, zi2);
                 zi = vec_add(vec_add(zrzi, zrzi), ci);
 
                 /* Increment k */
-                zr2 = vec_madd(zr, zr, zero);
-                zi2 = vec_madd(zi, zi, zero);
-                vector float mag2 = vec_add(zr2, zi2);
+                vector float zr2 = vec_madd(zr, zr, zero);
+                vector float mag2 = vec_madd(zi, zi, zr2);
 		vector bool int mask = vec_cmplt(mag2, threshold);
                 mk = vec_add(mk, vec_and(one, mask));
 
