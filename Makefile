@@ -1,12 +1,12 @@
 CFLAGS = -std=c99 -Wall -Wextra -Ofast -fopenmp
 
-mandel.ppc : mandel.c mandel_altivec.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-
 mandel.x86 : mandel.c mandel_avx.o mandel_sse2.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 mandel.arm : mandel.c mandel_neon.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+mandel.ppc : mandel.c mandel_altivec.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 mandel_altivec.o : mandel_altivec.c
