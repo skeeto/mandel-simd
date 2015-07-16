@@ -1,45 +1,41 @@
 #include <altivec.h>
 #include "mandel.h"
 
+/*
+ * There's no one-instruction splat for float, although
+ * you can splat into a float from an element in another
+ * vector. Given that these are done outside of the innermost
+ * loop it might not be worth the effort.
+ */
+#define VF_ALL(x) ((vector float) { x, x, x, x })
+
 void
 mandel_altivec(unsigned char *image, const struct spec *s)
 {
     vector float xmin, ymin, xscale, yscale, iter_scale, depth_scale;
-    vector float threshold = (vector float) { 4.0, 4.0, 4.0, 4.0 };
-    vector float one = (vector float) { 1.0, 1.0, 1.0, 1.0 };
-    vector float zero = (vector float) { 0.0, 0.0, 0.0, 0.0 };
-    
-    xmin = (vector float) { s->xlim[0], s->xlim[0], s->xlim[0], s->xlim[0] };
-    ymin = (vector float) { s->ylim[0], s->ylim[0], s->ylim[0], s->ylim[0] };
-    xscale = (vector float) { (s->xlim[1] - s->xlim[0]) / s->width,
-        (s->xlim[1] - s->xlim[0]) / s->width,
-        (s->xlim[1] - s->xlim[0]) / s->width,
-        (s->xlim[1] - s->xlim[0]) / s->width };
-    yscale = (vector float) { (s->ylim[1] - s->ylim[0]) / s->height,
-        (s->ylim[1] - s->ylim[0]) / s->height,
-        (s->ylim[1] - s->ylim[0]) / s->height,
-        (s->ylim[1] - s->ylim[0]) / s->height };
-    iter_scale = (vector float) { 1.0f / s->iterations,
-        1.0f / s->iterations,
-        1.0f / s->iterations,
-        1.0f / s->iterations };
-    depth_scale = (vector float) { s->depth - 1, s->depth - 1,
-        s->depth - 1, s->depth - 1 };
+    vector float threshold = VF_ALL(4.0);
+    vector float one = VF_ALL(1.0);
+    vector float zero = VF_ALL(0.0);
+
+    xmin = VF_ALL(s->xlim[0]);
+    ymin = VF_ALL(s->ylim[0]);
+    xscale = VF_ALL((s->xlim[1] - s->xlim[0]) / s->width);
+    yscale = VF_ALL((s->ylim[1] - s->ylim[0]) / s->height);
+    iter_scale = VF_ALL(1.0f / s->iterations);
+    depth_scale = VF_ALL(s->depth - 1);
 
     #pragma omp parallel for schedule(dynamic, 1)
     for (int y = 0; y < s->height; y++) {
         for (int x = 0; x < s->width; x += 4) {
-            vector float mx = (vector float)
-                { x, x + 1, x + 2, x + 3 };
-            vector float my = (vector float) 
-                { y, y, y, y };
+            vector float mx = (vector float) { x, x + 1, x + 2, x + 3 };
+            vector float my = VF_ALL(y);
             vector float cr = vec_madd(mx, xscale, xmin);
             vector float ci = vec_madd(my, yscale, ymin);
             vector float zr = cr;
             vector float zi = ci;
 
             int k = 1;
-            vector float mk = (vector float) { 1, 1, 1, 1 };
+            vector float mk = VF_ALL(1);
             while (++k < s->iterations) {
                 /* Compute z1 from z0 */
                 vector float zr2cr = vec_madd(zr, zr, cr);
@@ -60,10 +56,10 @@ mandel_altivec(unsigned char *image, const struct spec *s)
                 if(vec_all_ge(mag2, threshold))
                     break;
             }
+
             mk = vec_madd(mk, iter_scale, zero);
             mk = vec_madd(vec_rsqrte(mk), mk, zero);
             mk = vec_madd(mk, depth_scale, zero);
-
 
             vector int pixels = vec_cts(mk, 0);
 
