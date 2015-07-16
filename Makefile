@@ -10,7 +10,7 @@ mandel.arm : mandel.c mandel_neon.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 mandel_altivec.o : mandel_altivec.c
-	$(CC) -c $(CFLAGS) -maltivec -mabi=altivec -o $@ $^
+	$(CC) -c $(CFLAGS) -maltivec -o $@ $^
 
 mandel_avx.o : mandel_avx.c
 	$(CC) -c $(CFLAGS) -mavx -o $@ $^

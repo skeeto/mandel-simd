@@ -50,7 +50,7 @@ mandel_altivec(unsigned char *image, const struct spec *s)
                 /* Increment k */
                 vector float zr2 = vec_madd(zr, zr, zero);
                 vector float mag2 = vec_madd(zi, zi, zr2);
-		vector bool int mask = vec_cmplt(mag2, threshold);
+                vector bool int mask = vec_cmplt(mag2, threshold);
                 mk = vec_add(mk, vec_and(one, mask));
 
                 if(vec_all_ge(mag2, threshold))
