@@ -1,5 +1,4 @@
 CFLAGS = -std=c99 -Wall -Wextra -Ofast -fopenmp
-CC = /usr/pkg/gcc47/bin/gcc
 
 mandel.ppc : mandel.c mandel_altivec.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
@@ -23,6 +22,6 @@ mandel_neon.o : mandel_neon.c
 	$(CC) -c $(CFLAGS) -mfpu=neon -o $@ $^
 
 clean :
-	$(RM) mandel.x86 mandel.arm mandel.ppc mandel_avx.o mandel_sse2.o mandel_neon.o mandel_altivec.o
+	$(RM) mandel.x86 mandel.arm mandel.ppc mandel_altivec.o mandel_avx.o mandel_sse2.o mandel_neon.o
 
 .PHONY : clean
