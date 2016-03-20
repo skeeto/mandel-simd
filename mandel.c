@@ -77,10 +77,10 @@ main(int argc, char *argv[])
     const char *optstring = "w:h:d:k:x:y:AS";
     #endif // __x86_64__
 
-    #ifdef __arm__
+    #if defined(__arm__) || defined(__aarch64__)
     int use_neon = 1;
     const char *optstring = "w:h:d:k:x:y:N";
-    #endif // __arm__
+    #endif // __arm__ || __aarch64__
 
     #ifdef __ppc__
     int use_altivec = 1;
@@ -119,11 +119,11 @@ main(int argc, char *argv[])
                 break;
             #endif // __x86_64__
 
-            #ifdef __arm__
+            #if defined(__arm__) || defined(__aarch64__)
             case 'N':
                 use_neon = 0;
                 break;
-            #endif // __arm__
+            #endif // __arm__ || __aarch64__
 
             #ifdef __ppc__
             case 'A':
@@ -147,10 +147,10 @@ main(int argc, char *argv[])
         mandel_sse2(image, &spec);
     #endif // __x86_64__
 
-    #ifdef __arm__
+    #if defined(__arm__) || defined(__aarch64__)
     if (use_neon)
         mandel_neon(image, &spec);
-    #endif // __arm__
+    #endif // __arm__ || __aarch64__
 
     #ifdef __ppc__
     if (use_altivec)
