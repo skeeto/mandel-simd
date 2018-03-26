@@ -1,6 +1,13 @@
 #include <arm_neon.h>
 #include "mandel.h"
 
+static inline int is_zero(uint32x4_t mask) {
+    uint64x2_t v64 = vreinterpretq_u64_u32(mask);
+    uint32x2_t v32 = vqmovn_u64(v64);
+    uint64x1_t result = vreinterpret_u64_u32(v32);
+    return result[0] == 0;
+}
+
 void
 mandel_neon(unsigned char *image, const struct spec *s)
 {
@@ -12,9 +19,7 @@ mandel_neon(unsigned char *image, const struct spec *s)
     float32x4_t one = vdupq_n_f32(1);
     float32x4_t iter_scale = vdupq_n_f32(1.0f / s->iterations);
     float32x4_t depth_scale = vdupq_n_f32(s->depth - 1);
-    float32x4_t c0123; // {0.0f, 1.0f, 2.0f, 3.0f}
-    for (int i = 0; i < 4; i++)
-        c0123 = vsetq_lane_f32(i, c0123, i);
+    float32x4_t c0123 = {0.0f, 1.0f, 2.0f, 3.0f};
 
     #pragma omp parallel for schedule(dynamic, 1)
     for (int y = 0; y < s->height; y++) {
@@ -44,10 +49,7 @@ mandel_neon(unsigned char *image, const struct spec *s)
                 uint32x4_t mask = vcltq_f32(mag2, threshold);
 
                 /* Early bailout? */
-                if (vgetq_lane_u32(mask, 0) == 0 &&
-                    vgetq_lane_u32(mask, 1) == 0 &&
-                    vgetq_lane_u32(mask, 2) == 0 &&
-                    vgetq_lane_u32(mask, 3) == 0)
+                if (is_zero(mask))
                     break;
 
                 /* Increment k */
